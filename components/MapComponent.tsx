@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import { X } from "lucide-react";
 // @ts-ignore
-import type { Report } from "@/lib/supabase";
+
 
 type MapComponentProps = {
   center: { lat: number; lng: number };
