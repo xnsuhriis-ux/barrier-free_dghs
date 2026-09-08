@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import { X } from "lucide-react";
-import type { Report } from "@/lib/supabase";
+
 
 
 type MapComponentProps = {
   center: { lat: number; lng: number };
-  reports: Report[];
+  reports: any[];
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
