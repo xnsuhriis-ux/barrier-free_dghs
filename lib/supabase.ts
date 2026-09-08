@@ -8,3 +8,13 @@ const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export type Report = any;export type Report = any;
+export type Report = {
+  id: string;
+  title: string;
+  category: string;
+  description?: string;
+  image_url?: string;
+  lat: number;
+  lng: number;
+  created_at?: string;
+};
