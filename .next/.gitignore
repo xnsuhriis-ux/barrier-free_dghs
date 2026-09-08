@@ -1,0 +1,12 @@
+# dependencies
+/node_modules
+
+# Next.js build output
+/.next
+
+# 환경변수 파일 (보안 유지)
+.env.local
+.env
+
+# 맥 OS 시스템 파일
+.DS_Store
