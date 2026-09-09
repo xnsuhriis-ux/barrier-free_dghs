@@ -144,3 +144,4 @@ export default function MapComponent({ center, reports }: MapComponentProps) {
     </div>
   );
 }
+
