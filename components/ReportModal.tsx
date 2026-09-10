@@ -9,7 +9,8 @@ type ReportModalProps = {
   onSuccess: () => void;
 };
 
-const CATEGORIES = ["점자블록 파손", "불법 적치물", "높은 턱/단차", "기타"];
+// 1) 소음 카테고리 추가
+const CATEGORIES = ["점자블록 파손", "불법 적치물", "높은 턱/단차", "소음", "기타"];
 
 function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
@@ -26,6 +27,8 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
 
 export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
   const [category, setCategory] = useState(CATEGORIES[0]);
+  // 2) 직접 입력을 위한 상태 추가
+  const [customCategory, setCustomCategory] = useState("");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -43,6 +46,14 @@ export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
     e.preventDefault();
     setError(null);
 
+    // 3) '기타' 선택 시 직접 입력한 값을 최종 카테고리로 설정
+    const finalCategory = category === "기타" ? customCategory.trim() : category;
+
+    if (category === "기타" && !finalCategory) {
+      setError("기타 문제 유형을 직접 입력해 주세요.");
+      return;
+    }
+
     if (!description.trim()) {
       setError("상세 설명을 입력해 주세요.");
       return;
@@ -51,12 +62,10 @@ export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
     setIsSubmitting(true);
 
     try {
-      // 1) 현재 위치(GPS) 추출
       const position = await getCurrentPosition();
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
 
-      // 2) 사진이 있다면 Supabase Storage 에 업로드
       let imageUrl = "";
       if (imageFile) {
         const fileExt = imageFile.name.split(".").pop() || "jpg";
@@ -77,11 +86,11 @@ export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
         imageUrl = publicUrlData.publicUrl;
       }
 
-      // 3) reports 테이블에 Insert
+      // 4) 최종 카테고리(finalCategory)로 DB에 저장
       const { error: insertError } = await supabase.from("reports").insert({
         latitude,
         longitude,
-        category,
+        category: finalCategory,
         description: description.trim(),
         image_url: imageUrl,
       });
@@ -90,7 +99,6 @@ export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
         throw new Error(`제보 등록에 실패했습니다: ${insertError.message}`);
       }
 
-      // 4) 성공: 목록 갱신 + 모달 닫기
       onSuccess();
       onClose();
     } catch (err) {
@@ -162,7 +170,10 @@ export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
                 <button
                   key={cat}
                   type="button"
-                  onClick={() => setCategory(cat)}
+                  onClick={() => {
+                    setCategory(cat);
+                    if (cat !== "기타") setCustomCategory(""); // 다른 버튼 누르면 입력창 초기화
+                  }}
                   aria-pressed={category === cat}
                   className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-300 ${
                     category === cat
@@ -174,6 +185,19 @@ export default function ReportModal({ onClose, onSuccess }: ReportModalProps) {
                 </button>
               ))}
             </div>
+            
+            {/* 5) '기타' 선택 시 나타나는 조건부 입력창 */}
+            {category === "기타" && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="문제 유형을 직접 적어주세요 (예: 공사 중)"
+                  className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            )}
           </div>
 
           <div>

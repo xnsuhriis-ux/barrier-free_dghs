@@ -4,17 +4,26 @@ import { useEffect, useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import { X } from "lucide-react";
 
-
+type Report = {
+  id: string;
+  category: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  created_at: string;
+  image_url?: string;
+};
 
 type MapComponentProps = {
   center: { lat: number; lng: number };
-  reports: any[];
+  reports: Report[];
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   "점자블록 파손": "#EF4444", // 빨강
   "불법 적치물": "#EAB308", // 노랑
   "높은 턱/단차": "#3B82F6", // 파랑
+  "소음": "#8B5CF6", // 보라색 (추가됨)
   "기타": "#6B7280", // 회색
 };
 
@@ -22,10 +31,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   "점자블록 파손": "파손",
   "불법 적치물": "적치물",
   "높은 턱/단차": "단차",
+  "소음": "소음", // (추가됨)
   "기타": "기타",
 };
 
 function getMarkerColor(category: string) {
+  // 정의되지 않은 카테고리(직접 입력한 텍스트)가 들어오면 자동으로 '기타(회색)' 처리
   return CATEGORY_COLORS[category] || CATEGORY_COLORS["기타"];
 }
 
@@ -50,8 +61,6 @@ export default function MapComponent({ center, reports }: MapComponentProps) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isSdkReady, setIsSdkReady] = useState(false);
 
-  // layout.tsx 에서 autoload=false 로 SDK 스크립트만 불러왔으므로,
-  // 여기서 kakao.maps.load() 를 직접 호출해 지도 객체를 초기화한다.
   useEffect(() => {
     let cancelled = false;
 
